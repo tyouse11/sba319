@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
         res.status(204).send(result);
     } catch (error) {
         console.error(e);
-        res.status(500).send("Internal Server Error");
+        res.status(404).send("Not Found");
     }
 });
 
@@ -48,12 +48,26 @@ router.patch("/:id/add", async (req, res) => {
         res.status(200).send(result)
     } catch (error) {
         console.error(e);
-        res.status(500).send("Internal Server Error");
+        res.status(404).send("Not Found");
     }
 });
 
 // PATCH - Remove an item from a sale
+router.patch("/:id/remove", async (req, res) => {
+    const saleId = req.params.id;
+    const itemToRemove = req.body;
 
+    try {
+        const result = await Sale.updateOne(
+            { _id: saleId },
+            { $pull: { items: itemToRemove } }
+        );
+        res.status(200).send(result);
+    } catch (error) {
+        console.error(e);
+        res.status(404).send("Not Found");
+    }
+})
 
 // DELETE a sale by ID
 router.delete("/:id", async (req, res) => {
@@ -62,6 +76,5 @@ router.delete("/:id", async (req, res) => {
         data: "Item has been deleted"
     })
 });
-
 
 export default router;
