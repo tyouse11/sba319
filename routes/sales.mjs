@@ -14,6 +14,24 @@ router.get('/', async (req, res) => {
     })
   })
 
+// GET sales within a date range
+router.get('/date/:startDate/:endDate', async (req, res) => {
+    const { startDate, endDate } = req.params;
+  
+    try {
+      const foundSales = await Sale.find({
+        saleDate: { $gte: startDate, $lte: endDate }
+      }).limit(25);
+  
+      res.status(200).json({
+        foundSales: foundSales
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
 // POST - Create a sale
 router.post("/", async (req, res) => {
     let newSale = req.body;
