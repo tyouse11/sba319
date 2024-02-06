@@ -1,8 +1,10 @@
 import express from "express";
 import db from "../db/conn.mjs";
 import { ObjectId } from "mongodb"; // comes from MongoDB library
-import Sale from '../models/sale.mjs';
+import Sale from '../models/sale.mjs'
+import Review from '../models/review.mjs';
 import e from "express";
+import reviewsData from '../data/reviews.mjs'
 
 const router = express.Router();
 
@@ -11,8 +13,23 @@ router.get('/', async (req, res) => {
     let foundSales = await Sale.find().limit(25)
     res.status(200).json({
       foundSales: foundSales
-    })
-  })
+    });
+  });
+
+// Index - Find all reviews
+router.get('/reviews', async (req, res) => {
+    res.status(200).json({
+      foundReviews: reviewsData
+    });
+  });
+
+// 
+router.get('/reviews/sort', async (req, res) => {
+    let sortedReviews = await reviewsData.sort((a,b) => a.rating - b.rating);
+    res.status(200).json({
+        foundReviews: sortedReviews
+      });
+    });
 
 // GET sales within a date range
 router.get('/date/:startDate/:endDate', async (req, res) => {
@@ -45,13 +62,52 @@ router.post("/", async (req, res) => {
     }
 });
 
+// POST - Create a review
+router.post("/reviews", async (req, res) => {
+    let newReview = req.body;
+
+    try {
+        const result = await Review.create(newReview);
+        res.status(201).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
 // GET a single sale entry
 router.get("/:id", async (req, res) => {
-    let foundSale = await Sale.findById(req.params.id)
-    res.status(200).json({
-        data: foundSale
-    });
+    try {
+        let foundSale = await Sale.findById(req.params.id);
+        
+        if (!foundSale) {
+            return res.status(404).json( { error: "Sale not Found" });
+        }
+        res.status(200).json({
+            data: foundSale
+        })
+    } catch (error) {
+        console.error;
+        res.status(500).send("Internal Server Error")
+    }
 });
+
+// GET a single review entry by ID 
+router.get("/reviews/:id", async (req, res) => {
+    try {
+        let foundReview = await Review.findById(req.params.id);
+
+        if (!foundReview) {
+            return res.status(404).json( { error: "Review not Found" });
+        }
+        res.status(200).json({
+            data: foundReview
+        })
+    } catch (error) {
+        console.error;
+        res.status(500).send("Internal Server Error")
+    }
+})
 
 // PATCH - Add an item to a sale entry
 router.patch("/:id/add", async (req, res) => {
