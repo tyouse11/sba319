@@ -8,8 +8,6 @@ import customers from '../data/customers.mjs'
 
 const router = express.Router();
 
-// Sales related routes
-
 // Index - Find all sales
 router.get('/', async (req, res) => {
     let foundSales = await Sale.find().limit(25)
@@ -18,8 +16,16 @@ router.get('/', async (req, res) => {
     });
   });
 
+// Sort the reviews by rating
+router.get('/reviews/sort', async (req, res) => {
+    let sortedReviews = await reviewsData.sort((a,b) => a.rating - b.rating);
+    res.status(200).json({
+        foundReviews: sortedReviews
+    });
+});
+
 // GET sales within a date range
-router.get('/date/:startDate/:endDate', async (req, res) => {
+router.get('/:startDate/:endDate', async (req, res) => {
     const { startDate, endDate } = req.params;
   
     try {
@@ -108,35 +114,13 @@ router.get('/customers', async (req, res) => {
       foundcustomers: customers
     });
   });
-
-
-// Reviews related routes
-
+  
 // Index - Find all reviews
 router.get('/reviews', async (req, res) => {
     res.status(200).json({
       foundReviews: reviewsData
     });
   });
-
-// Sort the reviews by rating
-router.get('/reviews/sort', async (req, res) => {
-    let sortedReviews = await reviewsData.sort((a,b) => a.rating - b.rating);
-    res.status(200).json({
-        foundReviews: sortedReviews
-      });
-    });
-
-// Insert Reviews Data into MongoDB
-router.post('/insert-reviews', async (req, res) => {
-    try {
-        const result = await Review.insertMany(reviewsData);
-        res.status(201).json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
-    }
-});
 
 // POST - Create a review
 router.post("/reviews", async (req, res) => {
