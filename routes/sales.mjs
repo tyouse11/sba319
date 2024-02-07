@@ -1,10 +1,14 @@
 import express from "express";
 import Sale from '../models/sale.mjs'
 import Review from '../models/review.mjs';
+import Customer from '../models/customer.mjs'
 import e from "express";
 import reviewsData from '../data/reviews.mjs'
+import customers from '../data/customers.mjs'
 
 const router = express.Router();
+
+// Sales related routes
 
 // Index - Find all sales
 router.get('/', async (req, res) => {
@@ -13,21 +17,6 @@ router.get('/', async (req, res) => {
       foundSales: foundSales
     });
   });
-
-// Index - Find all reviews
-router.get('/reviews', async (req, res) => {
-    res.status(200).json({
-      foundReviews: reviewsData
-    });
-  });
-
-// Sort the reviews by rating
-router.get('/reviews/sort', async (req, res) => {
-    let sortedReviews = await reviewsData.sort((a,b) => a.rating - b.rating);
-    res.status(200).json({
-        foundReviews: sortedReviews
-      });
-    });
 
 // GET sales within a date range
 router.get('/date/:startDate/:endDate', async (req, res) => {
@@ -47,17 +36,6 @@ router.get('/date/:startDate/:endDate', async (req, res) => {
     }
   });
 
-// Insert Reviews Data into MongoDB
-router.post('/insert-reviews', async (req, res) => {
-    try {
-        const result = await Review.insertMany(reviewsData);
-        res.status(201).json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
-    }
-});
-
 // POST - Create a sale
 router.post("/", async (req, res) => {
     let newSale = req.body;
@@ -68,6 +46,95 @@ router.post("/", async (req, res) => {
     } catch (error) {
         console.error(e);
         res.status(404).send("Not Found");
+    }
+});
+
+// PATCH - Add an item to a sale entry
+router.patch("/:id/add", async (req, res) => {
+    const saleId = req.params.id;
+    const newItem = req.body;
+
+    try {
+        const result = await Sale.updateOne(
+            { _id: saleId },
+            { $push: { items: newItem } }
+        );
+        res.status(200).send(result)
+    } catch (error) {
+        console.error(e);
+        res.status(404).send("Not Found");
+    }
+});
+
+// PATCH - Remove an item from a sale
+router.patch("/:id/remove", async (req, res) => {
+    const saleId = req.params.id;
+    const itemToRemove = req.body;
+
+    try {
+        const result = await Sale.updateOne(
+            { _id: saleId },
+            { $pull: { items: itemToRemove } }
+        );
+        res.status(200).send(result);
+    } catch (error) {
+        console.error(e);
+        res.status(404).send("Not Found");
+    }
+})
+
+// DELETE a sale by ID
+router.delete("/:id", async (req, res) => {
+    await Sale.findByIdAndDelete(req.params.id)
+    res.status(204).json({
+        data: "Item has been deleted"
+    });
+});
+
+// Insert Customers Data into MongoDB
+router.post('/insert-customers', async (req, res) => {
+    try {
+        const result = await Customer.insertMany(customers);
+        res.status(201).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+// Index - Find all customers
+router.get('/customers', async (req, res) => {
+    res.status(200).json({
+      foundcustomers: customers
+    });
+  });
+
+
+// Reviews related routes
+
+// Index - Find all reviews
+router.get('/reviews', async (req, res) => {
+    res.status(200).json({
+      foundReviews: reviewsData
+    });
+  });
+
+// Sort the reviews by rating
+router.get('/reviews/sort', async (req, res) => {
+    let sortedReviews = await reviewsData.sort((a,b) => a.rating - b.rating);
+    res.status(200).json({
+        foundReviews: sortedReviews
+      });
+    });
+
+// Insert Reviews Data into MongoDB
+router.post('/insert-reviews', async (req, res) => {
+    try {
+        const result = await Review.insertMany(reviewsData);
+        res.status(201).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
     }
 });
 
@@ -117,48 +184,6 @@ router.get("/reviews/:id", async (req, res) => {
         res.status(500).send("Internal Server Error")
     }
 })
-
-// PATCH - Add an item to a sale entry
-router.patch("/:id/add", async (req, res) => {
-    const saleId = req.params.id;
-    const newItem = req.body;
-
-    try {
-        const result = await Sale.updateOne(
-            { _id: saleId },
-            { $push: { items: newItem } }
-        );
-        res.status(200).send(result)
-    } catch (error) {
-        console.error(e);
-        res.status(404).send("Not Found");
-    }
-});
-
-// PATCH - Remove an item from a sale
-router.patch("/:id/remove", async (req, res) => {
-    const saleId = req.params.id;
-    const itemToRemove = req.body;
-
-    try {
-        const result = await Sale.updateOne(
-            { _id: saleId },
-            { $pull: { items: itemToRemove } }
-        );
-        res.status(200).send(result);
-    } catch (error) {
-        console.error(e);
-        res.status(404).send("Not Found");
-    }
-})
-
-// DELETE a sale by ID
-router.delete("/:id", async (req, res) => {
-    await Sale.findByIdAndDelete(req.params.id)
-    res.status(204).json({
-        data: "Item has been deleted"
-    });
-});
 
 // DELETE a review by ID
 router.delete("/review/:id", async (req, res) => {

@@ -4,7 +4,10 @@ const Schema = mongoose.Schema;
 const model = mongoose.model;
 
 const reviewSchema = new Schema({
-  customerName: String,
+  customerName: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer'
+  },
   reviewText: String,
   rating: Number
 });
