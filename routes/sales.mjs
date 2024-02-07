@@ -1,6 +1,4 @@
 import express from "express";
-import db from "../db/conn.mjs";
-import { ObjectId } from "mongodb"; // comes from MongoDB library
 import Sale from '../models/sale.mjs'
 import Review from '../models/review.mjs';
 import e from "express";
@@ -23,7 +21,7 @@ router.get('/reviews', async (req, res) => {
     });
   });
 
-// 
+// Sort the reviews by rating
 router.get('/reviews/sort', async (req, res) => {
     let sortedReviews = await reviewsData.sort((a,b) => a.rating - b.rating);
     res.status(200).json({
@@ -48,6 +46,17 @@ router.get('/date/:startDate/:endDate', async (req, res) => {
       res.status(500).send("Internal Server Error");
     }
   });
+
+// Insert Reviews Data into MongoDB
+router.post('/insert-reviews', async (req, res) => {
+    try {
+        const result = await Review.insertMany(reviewsData);
+        res.status(201).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+    }
+});
 
 // POST - Create a sale
 router.post("/", async (req, res) => {
@@ -148,7 +157,15 @@ router.delete("/:id", async (req, res) => {
     await Sale.findByIdAndDelete(req.params.id)
     res.status(204).json({
         data: "Item has been deleted"
-    })
+    });
+});
+
+// DELETE a review by ID
+router.delete("/review/:id", async (req, res) => {
+    await Review.findByIdAndDelete(req.params.id)
+    res.status(204).json({
+        data: "Review has been deleted"
+    });
 });
 
 export default router;

@@ -20,5 +20,4 @@ const saleSchema = new Schema(
 );
 const Sale = model("Sale", saleSchema);
 
-// make exportable to be accessed in index.mjs
 export default Sale;

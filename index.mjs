@@ -4,6 +4,7 @@ dotenv.config();
 import mongoose from "mongoose";
 import sales from "./routes/sales.mjs"
 
+
 // Connection string
 const MONGO_URI = process.env.MONGO_URI
 const db = mongoose.connection
